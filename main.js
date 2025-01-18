@@ -1,3 +1,5 @@
+const openWeatherApiKey = "a713162dcd4c2e4fe1cb0aa0d302c8e1";
+const openWeatherurl = `https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}`;
 const galleryImages = [
   {
     src: "./assets/gallery/image1.jpg",
@@ -83,25 +85,7 @@ function greetingHandler() {
   else if (currentTime.getHours() < 24) {
     greetingText = "Welcome, Good Evening!";
   }
-  const weather = "sunny";
-  const place = "Kolkata";
-  let temperature = 37;
-
-  let celciusWeatherText = `The weather is ${weather} in ${place} and it's ${temperature.toFixed(1)}°C outside.`;
-  let fahrWeatherText = `The weather is ${weather} in ${place} and it's ${celciusToFahr(temperature).toFixed(1)}°F outside.`;
-
   document.querySelector("h1#greeting").innerHTML = greetingText;
-  document.querySelector("p#weather").innerHTML = celciusWeatherText;
-
-  document.querySelector("div.weather-group").addEventListener("click", function (e) {
-    console.log(e.target.id + " is clicked");
-    if (e.target.id == "celsius") {
-      document.querySelector("p#weather").innerHTML = celciusWeatherText;
-    }
-    else if (e.target.id == "fahr") {
-      document.querySelector("p#weather").innerHTML = fahrWeatherText;
-    }
-  });
 }
 
 function clockHandler() {
@@ -151,7 +135,7 @@ function galleryHandler() {
 
 function productsPopulator(productImages) {
   let productAreaSection = document.querySelector(".products-area");
-  productAreaSection.innerHTML="";
+  productAreaSection.innerHTML = "";
   //run a loop through the products and create an html elements("product-item" for each of them.)
   productImages.forEach(function (eachProduct, index) {
     let productItemElm = document.createElement("div");
@@ -197,53 +181,86 @@ function productsPopulator(productImages) {
   );
 }
 
-function productsFilter(){
+function productsFilter() {
   productsPopulator(productImages);
-  document.querySelector(".products-filter label[for=all] span.product-amount").textContent=productImages.length;
-  
-  let paidProductImages = productImages.filter(eachImages =>eachImages.price>0);
-  document.querySelector(".products-filter label[for=paid] span.product-amount").textContent=paidProductImages.length;
+  document.querySelector(".products-filter label[for=all] span.product-amount").textContent = productImages.length;
 
-  let freeProductImages = productImages.filter(eachImages =>(eachImages.price<=0 || eachImages.price===undefined));
-  document.querySelector(".products-filter label[for=free] span.product-amount").textContent=freeProductImages.length;
+  let paidProductImages = productImages.filter(eachImages => eachImages.price > 0);
+  document.querySelector(".products-filter label[for=paid] span.product-amount").textContent = paidProductImages.length;
+
+  let freeProductImages = productImages.filter(eachImages => (eachImages.price <= 0 || eachImages.price === undefined));
+  document.querySelector(".products-filter label[for=free] span.product-amount").textContent = freeProductImages.length;
 
   // Get all radio buttons and their corresponding labels
-const allRadioButton = document.getElementById('all');
-const paidRadioButton = document.getElementById('paid');
-const freeRadioButton = document.getElementById('free');
+  const allRadioButton = document.getElementById('all');
+  const paidRadioButton = document.getElementById('paid');
+  const freeRadioButton = document.getElementById('free');
 
-// Add a change event listener to each radio button
-allRadioButton.addEventListener('change', () => {
+  // Add a change event listener to each radio button
+  allRadioButton.addEventListener('change', () => {
     if (allRadioButton.checked) {
-        // Perform action for the "All" radio button
-        console.log('All radio button selected');
-        productsPopulator(productImages);
-        
-    }
-});
+      // Perform action for the "All" radio button
+      productsPopulator(productImages);
 
-paidRadioButton.addEventListener('change', () => {
+    }
+  });
+
+  paidRadioButton.addEventListener('change', () => {
     if (paidRadioButton.checked) {
-        // Perform action for the "Paid" radio button
-        console.log('Paid radio button selected');
-        productsPopulator(paidProductImages);
-        
-    }
-});
+      // Perform action for the "Paid" radio button
+      productsPopulator(paidProductImages);
 
-freeRadioButton.addEventListener('change', () => {
-    if (freeRadioButton.checked) {
-        // Perform action for the "Free" radio button
-        console.log('Free radio button selected');
-        productsPopulator(freeProductImages);
-        
     }
-});
+  });
+
+  freeRadioButton.addEventListener('change', () => {
+    if (freeRadioButton.checked) {
+      // Perform action for the "Free" radio button
+      productsPopulator(freeProductImages);
+
+    }
+  });
+
+  // //button clicks can also be monitored int the following way
+  // let productFilter =document.querySelector(".products-filter");
+  // productFilter.addEventListener("click", function(e){
+  //   console.log(e.target.id);
+  // });
 }
 
-function footerHandler(){
+function footerHandler() {
   let currentYear = new Date().getFullYear();
-  document.querySelector("footer").innerHTML=`© ${currentYear} All Right Reserved.`;
+  document.querySelector("footer").innerHTML = `© ${currentYear} All Right Reserved.`;
+}
+
+function weatherHandler() {
+  navigator.geolocation.getCurrentPosition(position => {
+    let latitude = position.coords.latitude;
+    let longitude = position.coords.longitude;
+    let weatherUrl = openWeatherurl.replace("{lat}", latitude).replace("{lon}", longitude).replace("{API key}", openWeatherApiKey);
+    fetch(weatherUrl).
+      then(response => response.json()).
+      then(data => {
+        const weather = data.weather[0].description;
+        const place = data.name;
+        let temperature = (data.main.temp - 273);
+        let celciusWeatherText = `The weather is ${weather} in ${place} and it's ${temperature.toFixed(1)}°C outside.`;
+        let fahrWeatherText = `The weather is ${weather} in ${place} and it's ${celciusToFahr(temperature).toFixed(1)}°F outside.`;
+
+
+        document.querySelector("p#weather").innerHTML = celciusWeatherText;
+
+        document.querySelector("div.weather-group").addEventListener("click", function (e) {
+          console.log(e.target.id + " is clicked");
+          if (e.target.id == "celsius") {
+            document.querySelector("p#weather").innerHTML = celciusWeatherText;
+          }
+          else if (e.target.id == "fahr") {
+            document.querySelector("p#weather").innerHTML = fahrWeatherText;
+          }
+        });
+      });
+  });
 }
 
 //On page load
@@ -253,3 +270,4 @@ clockHandler();
 galleryHandler();
 productsFilter();
 footerHandler();
+weatherHandler();
